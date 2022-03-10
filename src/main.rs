@@ -1,36 +1,40 @@
+use clap::Parser;
 use rand::Rng;
-use std::env;
+
+/// Generate natural language passwords
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Number of natural language passwords to generate
+    #[clap(short, long, default_value_t = 1)]
+    count: u32,
+
+    /// Number of adjective-noun pairs per generated password
+    #[clap(short, long, default_value_t = 1)]
+    length: u32,
+}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let config = Config::new(&args);
+    // Parse command line args, include default resources
+    let args = Args::parse();
+    let adj_bytes = include_bytes!("resources/adjectives.txt");
+    let noun_bytes = include_bytes!("resources/nouns.txt");
 
-    let (adjectives, num_adjs) = parse_bytes(include_bytes!("resources/adjectives.txt"));
-    let (nouns, num_nouns) = parse_bytes(include_bytes!("resources/nouns.txt"));
+    // TODO: Allow users to define corpora
+    // Parse data from default or given corpora
+    let (adjectives, num_adjs) = parse_bytes(adj_bytes);
+    let (nouns, num_nouns) = parse_bytes(noun_bytes);
 
+    // Randomly generate adjective-noun pairs
     let mut rng = rand::thread_rng();
-
-    for _ in 0..config.count {
+    for _ in 0..args.count {
         let mut nlp = String::new();
-        for _ in 0..config.length {
+        for _ in 0..args.length {
             let dice_adj = rng.gen_range(0..num_adjs) as usize;
             let dice_noun = rng.gen_range(0..num_nouns) as usize;
             nlp.push_str(&format!("{} {} ", adjectives[dice_adj], nouns[dice_noun]));
         }
         println!("{}", nlp);
-    }
-}
-
-struct Config {
-    length: i32,
-    count: i32,
-}
-
-impl Config {
-    fn new(args: &[String]) -> Config {
-        let length = args[1].clone().parse().unwrap();
-        let count = args[2].clone().parse().unwrap();
-        Config { length, count }
     }
 }
 
