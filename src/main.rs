@@ -1,11 +1,12 @@
 use std::fs;
 
-use clap::Parser;
+use clap::{ AppSettings, Parser };
 use rand::Rng;
 
 /// Generate natural language passwords
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
+#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 struct Args {
     /// Number of natural language passwords to generate
     #[clap(short, long, default_value_t = 1)]
